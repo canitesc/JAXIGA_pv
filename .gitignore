@@ -205,3 +205,40 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+*.out
+.DS_Store
+*.vtk
+*.vtu
+*.vts
+*.pvd
+*.asv
+*.m~
+*.fig
+*.pdf
+*.pickle
+*ckpt*
+*.png
+*.avi
+*.gif
+*.mp4
+*.mat
+*.h5
+*.xdmf
+*.npy
+
+# Ignore file swap
+*.swp
+# Ignore folder idea of pycharm idea
+.idea/
+# Ignore file python compiled code
+*.pyc
+jitfailure*
+*.aux
+*.log
+*.out
+*.aux
+*.spl
+*.synctex.gz
+
+

@@ -1,0 +1,1444 @@
+\documentclass[preprint,number,sort&compress,12pt]{elsarticle}
+
+%\addtolength{\evensidemargin}{-2cm}
+%\addtolength{\oddsidemargin}{-2cm}
+%\addtolength{\textwidth}{4cm}
+
+\usepackage[hyphens]{url}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{epsfig}
+\usepackage{psfrag}
+\usepackage{hyperref}
+\usepackage{amsmath,amssymb,amsfonts,amsthm,stmaryrd}
+\usepackage{dsfont}
+\usepackage{eucal}
+\usepackage{mathrsfs}
+\usepackage{listings}    % for inserting source code such as C++ code
+\usepackage{color}
+\usepackage{float}
+%\usepackage{cite}
+%\usepackage[numbers]{natbib}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{setspace}
+\usepackage{tikz}
+\usepackage{enumerate}
+\usepackage{hyperref}
+\usepackage[linesnumbered,ruled]{algorithm2e}
+\usepackage{algorithmic}
+\usepackage[margin=2.5cm]{geometry}
+%\usepackage{xcolor}
+\hypersetup{
+	colorlinks   = true, %Colours links instead of ugly boxes
+	urlcolor     = blue, %Colour for external hyperlinks
+	linkcolor    = blue, %Colour of internal links
+	citecolor   = red %Colour of citations
+}%\usepackage{subfigure}
+\usetikzlibrary{calc}
+\usetikzlibrary{shapes}
+\newtheorem{remark}{Remark}
+
+%\numberwithin{equation}{section}
+%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+	
+	% for listing package
+	
+	\definecolor{MyDarkBlue}{rgb}{1, 0.9, 1}
+	\lstset{language=Matlab,
+		basicstyle=\footnotesize,
+		%       keywordstyle=\color{red},
+		commentstyle=\itshape,
+		stringstyle=\ttfamily,
+		showstringspaces=false,
+		tabsize=2}
+	%\lstset{backgroundcolor=\color{MyDarkBlue}}
+	\lstdefinestyle{commentstyle}{color=\color{green}}
+	
+	\theoremstyle{remark}
+	\newtheorem{thm}{Theorem}[section]
+	\newtheorem{rmk}[thm]{Remark}
+	
+	%*************************!!!!! uncomment this for the final version
+	
+	%\definecolor{red}{gray}{0}
+	%\definecolor{blue}{gray}{0}
+	
+	
+	\newcommand\restr[2]{{% we make the whole thing an ordinary symbol
+			\left.\kern-\nulldelimiterspace % automatically resize the bar with \right
+			#1 % the function
+			\vphantom{\big|} % pretend it's a little taller at normal size
+			\right|_{#2} % this is the delimiter
+	}}
+	
+	% double spacing for revising
+	%\doublespacing
+	
+	\begin{frontmatter}
+		
+		\title{JAXIGA - A software framework for GPU-enabled and differentiable isogeometric analysis}
+		
+		
+		\author[weimar]{Cosmin Anitescu \fnref{fn1}}
+		\author[weimar]{Timon Rabczuk \corref{cor1}\fnref{fn3}}
+		
+		\cortext[cor1]{Corresponding author}
+		\address[weimar]{Institute of Structural Mechanics, Bauhaus-Universit\"{a}t Weimar, Marienstra\ss{}e 15 99423 Weimar, Germany}
+		
+		\fntext[fn1]{cosmin.anitescu@uni-weimar.de}
+		\fntext[fn3]{timon.rabczuk@uni-weimar.de}
+		
+
+%% Title, authors and addresses
+
+%% use the tnoteref command within \title for footnotes;
+%% use the tnotetext command for theassociated footnote;
+%% use the fnref command within \author or \affiliation for footnotes;
+%% use the fntext command for theassociated footnote;
+%% use the corref command within \author for corresponding author footnotes;
+%% use the cortext command for theassociated footnote;
+%% use the ead command for the email address,
+%% and the form \ead[url] for the home page:
+%% \title{Title\tnoteref{label1}}
+%% \tnotetext[label1]{}
+%% \author{Name\corref{cor1}\fnref{label2}}
+%% \ead{email address}
+%% \ead[url]{home page}
+%% \fntext[label2]{}
+%% \cortext[cor1]{}
+%% \affiliation{organization={},
+%%             addressline={},
+%%             city={},
+%%             postcode={},
+%%             state={},
+%%             country={}}
+%% \fntext[label3]{}
+
+
+%% Abstract
+\begin{abstract}
+We present JAXIGA, a novel open-source Python library for isogeometric analysis (IGA) built on the JAX framework.
+JAXIGA leverages automatic differentiation and just-in-time compilation to enable GPU acceleration and
+differentiable simulation capabilities for solving partial differential equations. The library implements
+both classical Galerkin-based IGA and modern deep energy methods using NURBS and B-spline basis functions.
+Key features include: (i) automatic multipatch coupling for 2D geometries with arbitrary quad mesh topology,
+(ii) seamless GPU acceleration through JAX's XLA backend, (iii) automatic differentiation for sensitivity
+analysis and inverse problems, and (iv) support for various problem classes including Poisson equations,
+linear elasticity, Darcy flow, and phase-field fracture. We demonstrate the framework's capabilities through
+numerical examples spanning 1D, 2D, and 3D problems, showcasing its performance on both CPU and GPU architectures.
+The differentiable programming paradigm enables novel applications in design optimization, uncertainty
+quantification, and physics-informed machine learning within the IGA context.
+\end{abstract}
+
+%%%Graphical abstract
+%\begin{graphicalabstract}
+%%\includegraphics{grabs}
+%\end{graphicalabstract}
+
+%%%Research highlights
+%\begin{highlights}
+%\item Research highlight 1
+%\item Research highlight 2
+%\end{highlights}
+
+%% Keywords
+\begin{keyword}
+%% keywords here, in the form: keyword \sep keyword
+
+%% PACS codes here, in the form: \PACS code \sep code
+
+%% MSC codes here, in the form: \MSC code \sep code
+%% or \MSC[2008] code \sep code (2000 is the default)
+isogeometric analysis \sep GPU-computing \sep differentiable-programming\
+\end{keyword}
+
+\end{frontmatter}
+
+%% Add \usepackage{lineno} before \begin{document} and uncomment 
+%% following line to enable line numbers
+%% \linenumbers
+
+%% main text
+%%
+
+%% Use \section commands to start a section
+\section{Introduction}
+\label{sec:intro}
+
+The simulation of physical phenomena governed by partial differential equations (PDEs) is fundamental to engineering design, scientific discovery, and technological innovation. Traditional finite element analysis (FEA) has served as the workhorse for computational mechanics for over five decades, yet it suffers from a fundamental limitation: the geometric representation used in computer-aided design (CAD) differs from that used in analysis. This geometric inconsistency necessitates time-consuming meshing procedures, introduces geometric approximation errors, and creates barriers to seamless integration of design and analysis workflows.
+
+Isogeometric analysis (IGA), introduced by Hughes et al.~\cite{hughes2005}, addresses these limitations by employing the same mathematical framework---Non-Uniform Rational B-Splines (NURBS) and related spline technologies---for both geometric representation and solution approximation. This paradigm shift enables exact geometric representation, eliminates meshing-induced approximation errors, naturally provides higher-order continuity across element boundaries, and facilitates direct integration with CAD systems. Over nearly two decades, IGA has matured into a powerful computational methodology with applications spanning structural mechanics~\cite{cottrell2009}, fluid dynamics, electromagnetics, and multiphysics problems.
+
+Concurrent with the development of IGA, two transformative trends have emerged in scientific computing. First, the advent of general-purpose graphics processing units (GPUs) and hardware accelerators has fundamentally altered the landscape of high-performance computing, offering unprecedented computational throughput for appropriately designed algorithms. Second, the rise of differentiable programming---enabled by automatic differentiation (autodiff) frameworks---has opened new avenues for solving inverse problems, performing sensitivity analysis, and integrating physics-based models with machine learning approaches. These capabilities are particularly valuable for design optimization, uncertainty quantification, and data-driven modeling, where gradient information with respect to design parameters or model inputs is essential.
+
+Despite these opportunities, existing IGA software frameworks have not fully embraced these modern computational paradigms. Most established codes are written in compiled languages (C, C++, Fortran) that, while computationally efficient, lack native autodiff capabilities and require significant effort to port to GPU architectures. Furthermore, many implementations expose low-level implementation details to users, resulting in steep learning curves and hindering rapid prototyping and experimentation.
+
+This paper introduces JAXIGA, a novel open-source Python library for isogeometric analysis built upon the JAX framework~\cite{jax2018}. JAX provides a unique combination of capabilities: (i) automatic differentiation in both forward and reverse modes, (ii) just-in-time (JIT) compilation to optimized machine code via the XLA compiler, and (iii) transparent execution on CPUs, GPUs, and TPUs without code modification. By leveraging JAX, JAXIGA brings the power of differentiable programming and hardware acceleration to the IGA community while maintaining the flexibility and accessibility of a high-level Python interface.
+
+\subsection{Isogeometric Analysis: A Brief Overview}
+\label{subsec:iga_overview}
+
+Isogeometric analysis~\cite{hughes2005,cottrell2009} employs the same spline-based functions used in CAD systems as basis functions for numerical analysis. The fundamental building blocks are B-splines and their rational generalizations, NURBS, which are defined through knot vectors, control points, and weights~\cite{piegl1997}. These basis functions possess several advantageous properties compared to traditional finite element shape functions:
+
+\begin{enumerate}
+\item \textbf{Exact geometry}: Complex geometries including conic sections (circles, ellipses) and free-form surfaces are represented exactly, eliminating geometry-induced discretization errors.
+
+\item \textbf{Higher-order continuity}: B-splines naturally provide $C^{p-1}$ continuous basis functions for polynomial degree $p$, enabling straightforward treatment of higher-order PDEs (e.g., Kirchhoff-Love shells, Cahn-Hilliard equations, phase-field models).
+
+\item \textbf{Efficient refinement}: Both $h$-refinement (knot insertion) and $p$-refinement (degree elevation) are mathematically well-defined operations that preserve the geometry exactly.
+
+\item \textbf{Superior per-degree-of-freedom accuracy}: For smooth problems, IGA typically achieves higher accuracy than FEA for the same number of degrees of freedom, particularly for higher polynomial degrees.
+\end{enumerate}
+
+The discretization process in IGA follows the standard Galerkin approach: the physical domain is parameterized by one or more NURBS patches, weak forms of governing PDEs are formulated, and the solution is approximated in the span of NURBS basis functions. For complex geometries requiring multiple patches, interface coupling conditions must be enforced to ensure continuity or appropriate jump conditions across patch boundaries.
+
+\subsection{The Promise of Differentiable Programming for PDEs}
+\label{subsec:diff_programming}
+
+Automatic differentiation has emerged as a transformative technology in scientific computing, extending far beyond its origins in machine learning. Unlike numerical finite differences (which suffer from truncation and round-off errors) or symbolic differentiation (which leads to expression swell), autodiff computes derivatives to machine precision efficiently by applying the chain rule to elementary operations~\cite{baydin2018}.
+
+In the context of PDEs and computational mechanics, differentiable programming enables several powerful capabilities:
+
+\textbf{Inverse problems and parameter identification}: Given observational data, autodiff facilitates gradient-based optimization to identify material parameters, boundary conditions, or source terms. This is particularly valuable in applications such as permeability identification in subsurface flow~\cite{raissi2019}, constitutive model calibration, and load reconstruction.
+
+\textbf{Sensitivity analysis and design optimization}: Computing sensitivities of quantities of interest (e.g., compliance, stress concentrations, eigenvalues) with respect to design parameters is essential for shape and topology optimization. Reverse-mode autodiff computes such gradients with computational cost independent of the number of parameters, enabling high-dimensional design optimization.
+
+\textbf{Uncertainty quantification}: Propagating parametric uncertainties through complex models requires repeated forward solves and, for advanced methods like stochastic Galerkin, derivatives of residuals. Autodiff automates the computation of required Jacobians and Hessians.
+
+\textbf{Physics-informed machine learning}: Recent approaches such as physics-informed neural networks (PINNs)~\cite{raissi2019} and deep energy methods~\cite{samaniego2020} leverage autodiff to incorporate PDE constraints into neural network training. Hybrid approaches combining classical discretizations with data-driven components also benefit from differentiable solvers.
+
+\textbf{Multiphysics coupling}: Monolithic approaches to coupled problems require Jacobian matrices for Newton-type solvers. Autodiff eliminates error-prone hand-derivation and coding of complex coupling terms.
+
+Despite these advantages, most existing IGA codes lack native autodiff support, limiting their applicability to these emerging research directions.
+
+\subsection{Landscape of Existing IGA Software}
+\label{subsec:existing_software}
+
+The IGA community has developed several software frameworks, each with distinct strengths and design philosophies:
+
+\textbf{PetIGA}~\cite{petiga} is a high-performance framework built on PETSc, written in C. It leverages PETSc's scalable linear and nonlinear solvers and supports distributed-memory parallelism via MPI. PetIGA excels in large-scale simulations but requires familiarity with PETSc's programming model and lacks autodiff capabilities.
+
+\textbf{GeoPDEs}~\cite{geopdes} is a MATLAB-based research tool offering an accessible environment for prototyping IGA methods. It provides comprehensive support for various PDE types and multipatch geometries. However, MATLAB's proprietary nature, limited GPU support, and absence of native autodiff restrict its applicability in modern computational workflows.
+
+\textbf{G+Smo} (Geometry plus Simulation Modules)~\cite{gismo} is an extensive C++ library emphasizing geometric modeling capabilities, including T-splines and hierarchical splines. While powerful and efficient, its C++ implementation presents challenges for rapid prototyping and lacks autodiff functionality.
+
+\textbf{Other frameworks} include IGAFEM (MATLAB), Nutils (Python, limited IGA support), and various commercial implementations. Each has trade-offs in terms of performance, flexibility, ease of use, and available features.
+
+A common limitation across existing frameworks is the lack of integrated automatic differentiation and GPU acceleration. While high-performance computing (HPC) extensions exist for some codes, GPU support typically requires substantial code refactoring. Furthermore, none of these frameworks seamlessly integrates with modern machine learning ecosystems, hindering research at the intersection of physics-based simulation and data-driven methods.
+
+\subsection{Contributions of This Work}
+\label{subsec:contributions}
+
+This paper presents JAXIGA, a comprehensive IGA framework designed from the ground up to embrace differentiable programming and hardware acceleration. The key contributions and features are:
+
+\begin{enumerate}
+\item \textbf{First JAX-based IGA implementation}: To our knowledge, JAXIGA is the first IGA library built on JAX, inheriting its automatic differentiation, JIT compilation, and transparent GPU/TPU execution capabilities.
+
+\item \textbf{Automatic multipatch coupling in 2D}: We introduce algorithms for automatic detection and coupling of patch interfaces in two-dimensional multipatch geometries. Given an arbitrary conforming quadrilateral mesh topology, JAXIGA automatically constructs the corresponding IGA discretization with appropriate interface coupling. This significantly simplifies the treatment of complex geometries and enables conversion of legacy quad meshes to IGA-compatible representations.
+
+\item \textbf{Unified framework for multiple solution paradigms}: JAXIGA supports classical Galerkin-based IGA, collocation methods, and modern deep energy methods (DEM) within a single coherent framework. This versatility enables comparative studies and hybrid approaches.
+
+\item \textbf{Comprehensive PDE support}: The library includes implementations for diverse problem classes: Poisson equations, linear elasticity (2D and 3D), Darcy flow, and phase-field fracture mechanics. Each implementation demonstrates best practices for extending the framework to new applications.
+
+\item \textbf{Differentiable simulations}: All solution procedures are differentiable with respect to problem parameters, enabling gradient-based inverse problems, sensitivity analysis, and integration with machine learning workflows.
+
+\item \textbf{GPU acceleration}: Computational kernels automatically benefit from JAX's JIT compilation and GPU execution, providing substantial speedups for appropriate problem sizes without requiring GPU-specific code.
+
+\item \textbf{Open-source and extensible}: JAXIGA is released under an open-source license with comprehensive documentation and examples, facilitating community contributions and extensions.
+\end{enumerate}
+
+The remainder of this paper is organized as follows. Section~\ref{sec:math} reviews the mathematical foundations of IGA and the solution methods implemented in JAXIGA. Section~\ref{sec:architecture} describes the software architecture, core components, and integration with JAX. Section~\ref{sec:features} details key innovations, particularly the automatic multipatch coupling algorithm. Section~\ref{sec:implementation} discusses implementation details and performance optimization strategies. Section~\ref{sec:examples} presents numerical examples demonstrating accuracy, performance, and differentiability capabilities. Section~\ref{sec:applications} explores potential applications in optimization, uncertainty quantification, and data-driven modeling. Section~\ref{sec:discussion} discusses advantages, limitations, and comparisons with existing software. Finally, Section~\ref{sec:conclusions} summarizes contributions and outlines future development directions.
+
+\section{Mathematical Preliminaries}
+\label{sec:math}
+
+This section establishes the mathematical foundations underlying JAXIGA. We begin with the definition of B-splines and NURBS, followed by a detailed presentation of the energy minimization framework that forms the core of our approach. Unlike traditional weak-form Galerkin methods, JAXIGA primarily employs direct energy minimization---a strategy that offers distinct advantages for nonlinear problems, inverse problems, and bilevel optimization formulations.
+
+\subsection{B-splines and NURBS Basis Functions}
+\label{subsec:nurbs}
+
+\subsubsection{Univariate B-splines}
+
+A B-spline basis of degree $p$ is defined on a knot vector $\Xi = \{\xi_1, \xi_2, \ldots, \xi_{n+p+1}\}$, where $\xi_i \in \mathbb{R}$ are knots satisfying $\xi_i \leq \xi_{i+1}$. The knot vector may contain repeated entries, which reduce continuity at those parametric locations. The B-spline basis functions $N_{i,p}(\xi)$ for $i=1,\ldots,n$ are defined recursively via the Cox-de Boor formula~\cite{piegl1997}:
+\begin{equation}
+N_{i,0}(\xi) = \begin{cases}
+1 & \text{if } \xi_i \leq \xi < \xi_{i+1}, \\
+0 & \text{otherwise},
+\end{cases}
+\end{equation}
+and for $p \geq 1$:
+\begin{equation}
+N_{i,p}(\xi) = \frac{\xi - \xi_i}{\xi_{i+p} - \xi_i} N_{i,p-1}(\xi) + \frac{\xi_{i+p+1} - \xi}{\xi_{i+p+1} - \xi_{i+1}} N_{i+1,p-1}(\xi).
+\label{eq:cox_deboor}
+\end{equation}
+Derivatives of B-spline basis functions are computed via
+\begin{equation}
+\frac{d N_{i,p}}{d\xi} = \frac{p}{\xi_{i+p} - \xi_i} N_{i,p-1}(\xi) - \frac{p}{\xi_{i+p+1} - \xi_{i+1}} N_{i+1,p-1}(\xi).
+\end{equation}
+
+B-spline basis functions possess several key properties:
+\begin{itemize}
+\item \textbf{Non-negativity}: $N_{i,p}(\xi) \geq 0$ for all $\xi$.
+\item \textbf{Partition of unity}: $\sum_{i=1}^n N_{i,p}(\xi) = 1$ for $\xi \in [\xi_1, \xi_{n+p+1}]$.
+\item \textbf{Local support}: $N_{i,p}(\xi) = 0$ for $\xi \notin [\xi_i, \xi_{i+p+1})$.
+\item \textbf{Continuity}: $N_{i,p}$ is $C^{p-k}$ continuous at a knot with multiplicity $k$.
+\end{itemize}
+
+\subsubsection{Tensor Product B-splines and NURBS}
+
+For multi-dimensional domains, tensor product constructions are employed. In two dimensions, given knot vectors $\Xi = \{\xi_1, \ldots, \xi_{n+p+1}\}$ and $\mathcal{H} = \{\eta_1, \ldots, \eta_{m+q+1}\}$ with degrees $p$ and $q$, the bivariate B-spline basis is
+\begin{equation}
+N_{i,j}^{p,q}(\xi, \eta) = N_{i,p}(\xi) M_{j,q}(\eta), \quad i=1,\ldots,n, \; j=1,\ldots,m,
+\end{equation}
+where $M_{j,q}$ are B-spline basis functions in the $\eta$ direction.
+
+NURBS (Non-Uniform Rational B-Splines) extend B-splines through the introduction of weights $w_{i,j} > 0$:
+\begin{equation}
+R_{i,j}^{p,q}(\xi, \eta) = \frac{N_{i,j}^{p,q}(\xi, \eta) w_{i,j}}{\sum_{k=1}^n \sum_{\ell=1}^m N_{k,\ell}^{p,q}(\xi, \eta) w_{k,\ell}}.
+\label{eq:nurbs}
+\end{equation}
+NURBS inherit all properties of B-splines and additionally enable exact representation of conic sections (circles, ellipses, hyperbolas) which are ubiquitous in engineering designs.
+
+A NURBS surface is defined by
+\begin{equation}
+\mathbf{S}(\xi, \eta) = \sum_{i=1}^n \sum_{j=1}^m R_{i,j}^{p,q}(\xi, \eta) \mathbf{P}_{i,j},
+\label{eq:nurbs_surface}
+\end{equation}
+where $\mathbf{P}_{i,j} \in \mathbb{R}^3$ are control points. The extension to three-dimensional NURBS volumes follows analogously via trivariate tensor products.
+
+\subsubsection{Refinement Strategies}
+
+Two fundamental refinement operations preserve the geometry exactly:
+
+\textbf{Knot insertion ($h$-refinement)}: Inserting new knots into $\Xi$ increases the number of basis functions and control points without changing the parameterization or geometry. This operation reduces element size while maintaining polynomial degree.
+
+\textbf{Degree elevation ($p$-refinement)}: Increasing the polynomial degree $p \to p+1$ enriches the approximation space. The geometry remains unchanged, but higher-order derivatives become available, and per-degree-of-freedom accuracy typically improves.
+
+These operations, combined with order elevation ($k$-refinement combining both), provide flexible hierarchical refinement strategies essential for adaptive analysis.
+
+\subsection{Energy Minimization Framework}
+\label{subsec:energy_framework}
+
+JAXIGA adopts an energy minimization approach as its primary solution paradigm. Given a physical system governed by a PDE, we seek the solution that minimizes an associated energy functional. This variational principle forms the foundation of our discretization strategy and offers several computational advantages, particularly when combined with automatic differentiation.
+
+\subsubsection{General Energy Functional}
+
+Consider a physical domain $\Omega \subset \mathbb{R}^d$ with boundary $\Gamma = \partial\Omega$. For a broad class of problems, the governing equations can be derived from the stationarity condition of an energy functional $\mathcal{E}: \mathcal{V} \to \mathbb{R}$, where $\mathcal{V}$ is an appropriate function space. The solution $u^* \in \mathcal{V}$ satisfies
+\begin{equation}
+u^* = \arg\min_{u \in \mathcal{V}} \mathcal{E}(u),
+\label{eq:energy_min}
+\end{equation}
+subject to appropriate boundary conditions.
+
+The energy functional typically comprises internal energy (arising from the PDE operator) and external work terms:
+\begin{equation}
+\mathcal{E}(u) = \mathcal{E}_{\text{int}}(u) - \mathcal{E}_{\text{ext}}(u).
+\label{eq:energy_decomposition}
+\end{equation}
+
+\subsubsection{NURBS Discretization of Energy Functionals}
+
+In JAXIGA, we discretize the solution space using NURBS basis functions. For a single-patch domain with $n$ basis functions $\{R_i\}_{i=1}^n$, the approximate solution is parameterized as
+\begin{equation}
+u^h(\mathbf{x}) = \sum_{i=1}^n c_i R_i(\boldsymbol{\xi}(\mathbf{x})),
+\label{eq:nurbs_approx}
+\end{equation}
+where $c_i \in \mathbb{R}$ are unknown coefficients and $\boldsymbol{\xi}(\mathbf{x})$ denotes the inverse of the parametric mapping $\mathbf{x}(\boldsymbol{\xi})$ from equation~\eqref{eq:nurbs_surface}.
+
+Substituting~\eqref{eq:nurbs_approx} into~\eqref{eq:energy_min}, the infinite-dimensional optimization problem reduces to a finite-dimensional problem:
+\begin{equation}
+\mathbf{c}^* = \arg\min_{\mathbf{c} \in \mathbb{R}^n} \mathcal{E}^h(\mathbf{c}),
+\label{eq:discrete_energy_min}
+\end{equation}
+where $\mathcal{E}^h: \mathbb{R}^n \to \mathbb{R}$ is the discretized energy functional and $\mathbf{c} = [c_1, \ldots, c_n]^T$.
+
+\subsubsection{Quadrature-Based Energy Evaluation}
+
+The discrete energy $\mathcal{E}^h(\mathbf{c})$ is evaluated via numerical quadrature. The domain is partitioned into Bézier elements using Bézier extraction operators~\cite{borden2011}, which decompose the global NURBS basis into element-local Bernstein polynomials. For each element $\Omega_e$, we employ Gauss-Legendre quadrature:
+\begin{equation}
+\mathcal{E}^h(\mathbf{c}) = \sum_{e=1}^{n_{\text{el}}} \sum_{q=1}^{n_{\text{gp}}} w_q \, e(\mathbf{c}; \mathbf{x}_q) \, |\mathbf{J}(\boldsymbol{\xi}_q)|,
+\label{eq:quadrature_energy}
+\end{equation}
+where $n_{\text{el}}$ is the number of elements, $n_{\text{gp}}$ is the number of quadrature points per element, $w_q$ are quadrature weights, $e(\mathbf{c}; \mathbf{x}_q)$ is the energy density at quadrature point $\mathbf{x}_q$, and $|\mathbf{J}|$ is the Jacobian determinant of the parametric mapping.
+
+\subsubsection{Automatic Differentiation for Gradient and Hessian}
+
+A key advantage of the energy minimization framework in JAXIGA is seamless integration with automatic differentiation. JAX provides forward-mode and reverse-mode autodiff, enabling exact computation of gradients and Hessians without manual derivation.
+
+The gradient of the discrete energy is
+\begin{equation}
+\mathbf{g}(\mathbf{c}) = \nabla_{\mathbf{c}} \mathcal{E}^h(\mathbf{c}) = \frac{\partial \mathcal{E}^h}{\partial \mathbf{c}}.
+\label{eq:energy_gradient}
+\end{equation}
+For problems where $\mathcal{E}^h$ is quadratic in $\mathbf{c}$ (e.g., linear PDEs), the stationarity condition $\mathbf{g}(\mathbf{c}^*) = \mathbf{0}$ yields a linear system:
+\begin{equation}
+\mathbf{K} \mathbf{c}^* = \mathbf{f},
+\label{eq:linear_system}
+\end{equation}
+where $\mathbf{K} = \nabla^2_{\mathbf{c}} \mathcal{E}^h$ is the stiffness matrix and $\mathbf{f} = -\nabla_{\mathbf{c}} \mathcal{E}^h|_{\mathbf{c}=\mathbf{0}}$ is the force vector. Both $\mathbf{K}$ and $\mathbf{f}$ are computed automatically via autodiff in JAXIGA.
+
+For nonlinear problems, the Hessian
+\begin{equation}
+\mathbf{H}(\mathbf{c}) = \nabla^2_{\mathbf{c}} \mathcal{E}^h(\mathbf{c})
+\label{eq:energy_hessian}
+\end{equation}
+provides the tangent stiffness matrix required for Newton-type optimization algorithms.
+
+\subsection{Energy Formulations for Representative PDEs}
+\label{subsec:energy_pdEs}
+
+We now present energy functionals for the problem classes implemented in JAXIGA, emphasizing how NURBS discretization and autodiff enable efficient solution procedures.
+
+\subsubsection{Poisson Equation}
+
+The Poisson equation with Dirichlet boundary conditions is:
+\begin{equation}
+\begin{aligned}
+-\nabla \cdot (a(\mathbf{x}) \nabla u) &= f(\mathbf{x}) \quad \text{in } \Omega, \\
+u &= g(\mathbf{x}) \quad \text{on } \Gamma_D,
+\end{aligned}
+\label{eq:poisson_strong}
+\end{equation}
+where $a(\mathbf{x}) > 0$ is the diffusion coefficient and $f(\mathbf{x})$ is a source term.
+
+The associated energy functional is
+\begin{equation}
+\mathcal{E}(u) = \int_\Omega \left[ \frac{1}{2} a(\mathbf{x}) |\nabla u|^2 - f(\mathbf{x}) u \right] d\Omega.
+\label{eq:poisson_energy}
+\end{equation}
+
+With NURBS discretization $u^h = \sum_i c_i R_i$, the discrete energy becomes
+\begin{equation}
+\mathcal{E}^h(\mathbf{c}) = \frac{1}{2} \mathbf{c}^T \mathbf{K} \mathbf{c} - \mathbf{c}^T \mathbf{f},
+\label{eq:poisson_discrete_energy}
+\end{equation}
+where
+\begin{equation}
+K_{ij} = \int_\Omega a(\mathbf{x}) \nabla R_i \cdot \nabla R_j \, d\Omega, \quad
+f_i = \int_\Omega f(\mathbf{x}) R_i \, d\Omega.
+\end{equation}
+Minimizing~\eqref{eq:poisson_discrete_energy} yields the standard Galerkin system $\mathbf{K}\mathbf{c} = \mathbf{f}$.
+
+\subsubsection{Linear Elasticity}
+
+The linear elasticity problem seeks the displacement field $\mathbf{u}: \Omega \to \mathbb{R}^d$ satisfying equilibrium:
+\begin{equation}
+-\nabla \cdot \boldsymbol{\sigma}(\mathbf{u}) = \mathbf{b} \quad \text{in } \Omega,
+\label{eq:elasticity_strong}
+\end{equation}
+where $\boldsymbol{\sigma} = \mathbb{C} : \boldsymbol{\varepsilon}$ is the Cauchy stress tensor, $\boldsymbol{\varepsilon} = \frac{1}{2}(\nabla \mathbf{u} + \nabla \mathbf{u}^T)$ is the strain tensor, $\mathbb{C}$ is the fourth-order elasticity tensor, and $\mathbf{b}$ is the body force.
+
+The total potential energy is
+\begin{equation}
+\mathcal{E}(\mathbf{u}) = \int_\Omega \psi(\boldsymbol{\varepsilon}(\mathbf{u})) \, d\Omega - \int_\Omega \mathbf{b} \cdot \mathbf{u} \, d\Omega - \int_{\Gamma_N} \mathbf{t} \cdot \mathbf{u} \, d\Gamma,
+\label{eq:elasticity_energy}
+\end{equation}
+where $\psi(\boldsymbol{\varepsilon}) = \frac{1}{2} \boldsymbol{\varepsilon} : \mathbb{C} : \boldsymbol{\varepsilon}$ is the strain energy density and $\mathbf{t}$ is the traction on the Neumann boundary $\Gamma_N$.
+
+For 2D plane stress with Young's modulus $E$ and Poisson's ratio $\nu$, the constitutive matrix is
+\begin{equation}
+\mathbf{C} = \frac{E}{1-\nu^2} \begin{bmatrix}
+1 & \nu & 0 \\
+\nu & 1 & 0 \\
+0 & 0 & (1-\nu)/2
+\end{bmatrix}.
+\end{equation}
+
+The NURBS discretization $\mathbf{u}^h = \sum_i \mathbf{c}_i R_i$ leads to a discrete energy $\mathcal{E}^h(\mathbf{c})$ where $\mathbf{c} = [c_1^x, c_1^y, c_2^x, c_2^y, \ldots]^T$ contains displacement coefficients for all basis functions and spatial directions.
+
+\subsubsection{Phase-Field Fracture}
+
+Phase-field models for fracture introduce a scalar damage variable $\phi: \Omega \to [0,1]$, where $\phi=0$ indicates intact material and $\phi=1$ represents fully broken material. The coupled energy functional is~\cite{miehe2010,borden2012}
+\begin{equation}
+\mathcal{E}(\mathbf{u}, \phi) = \int_\Omega \left[ g(\phi) \psi^+(\boldsymbol{\varepsilon}) + \psi^-(\boldsymbol{\varepsilon}) + G_c \left( \frac{\phi^2}{2\ell} + \frac{\ell}{2} |\nabla \phi|^2 \right) \right] d\Omega - W_{\text{ext}}(\mathbf{u}),
+\label{eq:phase_field_energy}
+\end{equation}
+where:
+\begin{itemize}
+\item $g(\phi) = (1-\phi)^2 + k$ is a degradation function with residual stiffness $k \ll 1$,
+\item $\psi^+$ and $\psi^-$ are tensile and compressive parts of the strain energy (crack only grows under tension),
+\item $G_c$ is the critical energy release rate,
+\item $\ell$ is the length scale parameter controlling crack width,
+\item $W_{\text{ext}}$ is the external work.
+\end{itemize}
+
+The stationarity conditions yield coupled PDEs for displacement and phase-field. JAXIGA discretizes both fields using NURBS:
+\begin{equation}
+\mathbf{u}^h = \sum_i \mathbf{c}_i^u R_i, \quad \phi^h = \sum_i c_i^\phi R_i,
+\end{equation}
+and solves the coupled system via alternating minimization or monolithic approaches, with all gradients computed via autodiff.
+
+\subsection{Comparison with Classical Weak-Form Galerkin Methods}
+\label{subsec:galerkin_comparison}
+
+While the energy minimization approach is mathematically equivalent to the Galerkin weak form for linear, self-adjoint problems, it offers distinct computational advantages in JAXIGA's autodiff-enabled framework:
+
+\textbf{Unified treatment of linear and nonlinear problems}: For nonlinear PDEs, deriving residual forms and Jacobians by hand is error-prone. Energy minimization requires only the energy functional; gradients and Hessians are automatic.
+
+\textbf{Direct inverse problem formulation}: Inverse problems naturally fit the bilevel optimization structure:
+\begin{equation}
+\min_{\boldsymbol{\theta}} \mathcal{J}(\mathbf{c}^*(\boldsymbol{\theta}); \mathbf{d}_{\text{obs}}) \quad \text{s.t.} \quad \mathbf{c}^*(\boldsymbol{\theta}) = \arg\min_{\mathbf{c}} \mathcal{E}^h(\mathbf{c}; \boldsymbol{\theta}),
+\label{eq:bilevel}
+\end{equation}
+where $\boldsymbol{\theta}$ are parameters to be identified, $\mathcal{J}$ is a data-fitting objective, and $\mathbf{d}_{\text{obs}}$ are observations. Reverse-mode autodiff through the solver enables efficient computation of $\nabla_{\boldsymbol{\theta}} \mathcal{J}$.
+
+\textbf{Constrained optimization integration}: Energy minimization naturally accommodates inequality constraints (e.g., contact, plasticity) via augmented Lagrangian or barrier methods, with autodiff handling constraint gradients.
+
+\textbf{Conceptual simplicity}: Users specify the energy functional $\mathcal{E}^h$; the solver handles the rest. This is particularly advantageous for rapid prototyping and educational purposes.
+
+\subsection{Collocation Methods}
+\label{subsec:collocation}
+
+In addition to energy minimization, JAXIGA supports isogeometric collocation~\cite{auricchio2010,schillinger2013}, which enforces the strong form of the PDE at selected collocation points. For a PDE $\mathcal{L}u = f$, collocation requires
+\begin{equation}
+\mathcal{L} u^h(\mathbf{x}_c) = f(\mathbf{x}_c), \quad c = 1, \ldots, n_c,
+\label{eq:collocation}
+\end{equation}
+where $\{\mathbf{x}_c\}$ are collocation points (typically Greville abscissae).
+
+Collocation is computationally less expensive than Galerkin methods (no numerical integration over elements) but may sacrifice some accuracy and stability. JAXIGA implements collocation for comparative studies and problems where computational efficiency is paramount.
+
+\subsection{Multipatch Geometries and Interface Coupling}
+\label{subsec:multipatch}
+
+Complex engineering geometries typically require multiple NURBS patches. Each patch $\Omega_\alpha$, $\alpha = 1, \ldots, n_p$, has its own parametric domain $\widehat{\Omega}_\alpha$ and mapping $\mathbf{x}_\alpha: \widehat{\Omega}_\alpha \to \Omega_\alpha$.
+
+\subsubsection{Conforming Meshes and Interface Conditions}
+
+At interfaces between patches, continuity conditions must be enforced. For $C^0$ continuity (displacement continuity), we require
+\begin{equation}
+u_\alpha|_{\Gamma_{\alpha\beta}} = u_\beta|_{\Gamma_{\alpha\beta}},
+\label{eq:C0_continuity}
+\end{equation}
+where $\Gamma_{\alpha\beta} = \partial\Omega_\alpha \cap \partial\Omega_\beta$ is the common interface.
+
+When patches share identical parameterizations along interfaces (conforming case), condition~\eqref{eq:C0_continuity} is enforced by identifying degrees of freedom. JAXIGA automates this process in 2D through vertex-to-patch mapping and edge detection algorithms (detailed in Section~\ref{subsec:auto_multipatch}).
+
+\subsubsection{Energy Functional for Multipatch Domains}
+
+For multipatch domains, the total energy is the sum over patches:
+\begin{equation}
+\mathcal{E}^h(\mathbf{c}) = \sum_{\alpha=1}^{n_p} \mathcal{E}^h_\alpha(\mathbf{c}_\alpha),
+\label{eq:multipatch_energy}
+\end{equation}
+where $\mathbf{c}_\alpha$ are the coefficients associated with patch $\alpha$. Interface conditions are incorporated through global degree-of-freedom numbering that identifies shared nodes.
+
+\subsubsection{Non-Conforming Interfaces}
+
+For non-conforming interfaces (different parameterizations or refinement levels), mortar methods or penalty formulations can be employed. These introduce additional coupling terms in the energy functional. While JAXIGA's current implementation focuses on conforming multipatch geometries, the energy framework readily accommodates such extensions through additional constraint terms:
+\begin{equation}
+\mathcal{E}^h_{\text{total}}(\mathbf{c}) = \mathcal{E}^h(\mathbf{c}) + \frac{\gamma}{2} \sum_{\alpha,\beta} \int_{\Gamma_{\alpha\beta}} |u_\alpha - u_\beta|^2 \, d\Gamma,
+\label{eq:penalty_coupling}
+\end{equation}
+where $\gamma$ is a penalty parameter.
+
+\subsection{Solution Strategies}
+\label{subsec:solution_strategies}
+
+JAXIGA employs several optimization algorithms to solve the discrete energy minimization problem~\eqref{eq:discrete_energy_min}:
+
+\textbf{Direct linear solvers}: For linear problems, computing $\mathbf{g}(\mathbf{c}) = \mathbf{0}$ via autodiff yields $\mathbf{K}\mathbf{c} = \mathbf{f}$, solved using sparse direct factorization (UMFPACK, MUMPS via SciPy interface).
+
+\textbf{BFGS and L-BFGS}: For smooth nonlinear problems, quasi-Newton methods approximate the Hessian from gradient evaluations. JAXIGA implements custom JAX-compatible BFGS and limited-memory L-BFGS~\cite{liu1989} optimizers.
+
+\textbf{Nonlinear conjugate gradient}: For large-scale problems where Hessian approximation is expensive, gradient-based conjugate gradient methods provide an alternative.
+
+\textbf{Trust-region and line-search}: Globalization strategies ensure convergence from poor initial guesses.
+
+All these methods leverage JAX's reverse-mode autodiff to compute $\nabla_{\mathbf{c}} \mathcal{E}^h(\mathbf{c})$ efficiently, regardless of the dimension of $\mathbf{c}$.
+
+\subsection{Summary}
+\label{subsec:math_summary}
+
+The mathematical framework of JAXIGA centers on energy minimization using NURBS discretization. This approach, combined with automatic differentiation, provides:
+\begin{itemize}
+\item A unified treatment of linear and nonlinear PDEs,
+\item Seamless integration of forward and inverse problems,
+\item Natural formulation of bilevel optimization for parameter identification,
+\item Exact gradients and Hessians without manual derivation,
+\item Flexibility to incorporate various constraints and coupling conditions.
+\end{itemize}
+
+The next section describes how these mathematical abstractions are realized in JAXIGA's software architecture.
+
+\section{Software Design and Key Features}
+\label{sec:design}
+
+This section presents JAXIGA's software architecture, design philosophy, and key innovations. We focus on high-level abstractions and user-facing interfaces, deferring low-level implementation details to the appendices. The design emphasizes three core principles: \emph{differentiability by default}, \emph{hardware agnosticism}, and \emph{user accessibility}.
+
+\subsection{Design Philosophy}
+\label{subsec:design_philosophy}
+
+JAXIGA's architecture is guided by several key design decisions that distinguish it from traditional IGA implementations:
+
+\textbf{Energy-first formulation}: Rather than assembling stiffness matrices and force vectors separately, users define energy functionals. This unifies linear and nonlinear problems, simplifies inverse problem formulation, and leverages autodiff for all derivative computations. The assembly process becomes an implementation detail hidden from users.
+
+\textbf{Functional programming paradigm}: JAX encourages pure functions (no side effects), which enables safe JIT compilation, automatic parallelization, and gradient computation. JAXIGA adopts this paradigm: geometries, meshes, and solutions are immutable data structures, and all operations return new objects rather than modifying existing ones.
+
+\textbf{Modularity and composability}: The library is structured as independent modules (geometry, meshing, assembly, solvers) with well-defined interfaces. Users can substitute components (e.g., different quadrature rules, solvers, or refinement strategies) without modifying core code.
+
+\textbf{Automatic multipatch handling}: Complex geometries are decomposed into multiple NURBS patches. JAXIGA automates interface detection and DOF coupling in 2D, eliminating manual bookkeeping and enabling direct conversion of quadrilateral meshes to IGA discretizations.
+
+\textbf{Extensibility over comprehensiveness}: Rather than implementing every conceivable feature, JAXIGA provides clear extension points. Adding a new PDE requires defining its energy functional; the framework handles discretization, differentiation, and solution automatically.
+
+\subsection{Package Structure and Core Modules}
+\label{subsec:package_structure}
+
+JAXIGA is organized into two main subpackages:
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single]
+jaxiga/
+├── utils/              # Core utilities and algorithms
+│   ├── Geom.py         # Geometry primitives
+│   ├── IGA.py          # Mesh generation
+│   ├── splines.py      # Basis function evaluation
+│   ├── processing_splines.py  # Assembly kernels
+│   ├── boundary.py     # Boundary conditions
+│   ├── bfgs.py, lbfgs.py     # Optimizers
+│   └── postprocessing.py     # Solution analysis
+└── utils_iga/         # High-level IGA abstractions
+    ├── Geom.py        # IGA-specific geometry
+    ├── IGA.py         # IGA mesh classes
+    ├── materials.py   # Constitutive models
+    ├── assembly.py    # Quadrature and assembly
+    └── multipatch.py  # Multipatch utilities
+\end{lstlisting}
+
+This dual-level organization separates low-level numerical routines (\texttt{utils}) from high-level IGA concepts (\texttt{utils\_iga}), facilitating both novice use and expert customization.
+
+\subsection{Geometry Definition and Mesh Generation}
+\label{subsec:geometry_mesh}
+
+\subsubsection{Geometry Module}
+
+JAXIGA provides classes for common geometric primitives, all built on NURBS representations:
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single]
+from jaxiga.utils.Geom_examples import (
+    Segment, Quadrilateral, Disk, QuarterAnnulus
+)
+
+# 1D domain: segment [0, 8]
+patch1d = Segment([[0.0], [8.0]])
+
+# 2D domain: unit square
+corners = jnp.array([[0.0, 0.0], [0.0, 1.0],
+                     [1.0, 0.0], [1.0, 1.0]])
+patch2d = Quadrilateral(corners)
+
+# Circular domain (exact NURBS representation)
+disk = Disk(center=[0.0, 0.0], radius=1.0)
+\end{lstlisting}
+
+Each geometry object encapsulates control points, weights, and knot vectors. The NURBS representation is compatible with external CAD tools via the geomdl library~\cite{piegl1997}.
+
+\subsubsection{Refinement Operations}
+
+Geometries support $h$-refinement (knot insertion) and $p$-refinement (degree elevation):
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single]
+# Increase polynomial degree from 1 to 3
+patch2d.degreeElev(deg_u=2, deg_v=2)
+
+# Refine mesh uniformly (3 levels of h-refinement)
+for i in range(3):
+    patch2d.refine_knotvectors(dir_u=True, dir_v=True)
+\end{lstlisting}
+
+These operations preserve the geometry exactly while enriching the approximation space---a key advantage of IGA over traditional FEM.
+
+\subsubsection{IGA Mesh Generation}
+
+The \texttt{IGAMesh} classes extract discretization information from geometries:
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single]
+from jaxiga.utils.IGA import IGAMesh2D
+
+mesh = IGAMesh2D(patch2d)
+mesh.classify_boundary()  # Identify boundary edges
+
+# Mesh attributes:
+# - mesh.num_elem: number of elements
+# - mesh.num_basis: number of basis functions
+# - mesh.elem_node: element-to-basis connectivity
+# - mesh.C: Bezier extraction operators
+# - mesh.cpts, mesh.wgts: control points and weights
+\end{lstlisting}
+
+Internally, JAXIGA uses Bézier extraction~\cite{borden2011} to represent the global NURBS basis as element-local Bernstein polynomials, enabling standard FEM-like assembly procedures while maintaining NURBS properties.
+
+\subsection{Automatic Multipatch Coupling in 2D}
+\label{subsec:auto_multipatch}
+
+A major innovation in JAXIGA is automatic detection and coupling of patch interfaces for two-dimensional multipatch geometries. This capability enables:
+\begin{itemize}
+\item Simplified treatment of complex geometries (e.g., plates with holes),
+\item Conversion of legacy quadrilateral meshes to IGA-compatible discretizations,
+\item User-friendly specification without manual interface management.
+\end{itemize}
+
+\subsubsection{Multipatch Workflow}
+
+Given multiple patches, JAXIGA automates the coupling process:
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single]
+from jaxiga.utils.multipatch import (
+    gen_vertex2patch2D, gen_edge_list, zip_conforming
+)
+
+# Create meshes for each patch
+meshes = [IGAMesh2D(patch1), IGAMesh2D(patch2), ...]
+for mesh in meshes:
+    mesh.classify_boundary()
+
+# Automatic interface detection
+vertices, vertex2patch, patch2vertex = \
+    gen_vertex2patch2D(meshes)
+
+# Generate interface edge list
+edge_list = gen_edge_list(patch2vertex)
+
+# Global DOF numbering with interface coupling
+total_dofs = zip_conforming(meshes, vertex2patch, edge_list)
+\end{lstlisting}
+
+The \texttt{zip\_conforming} function identifies shared degrees of freedom at patch interfaces and creates a global numbering scheme, ensuring $C^0$ continuity automatically.
+
+\subsubsection{Algorithm Overview}
+
+The automatic coupling algorithm operates in three stages:
+
+\textbf{Stage 1 - Vertex identification}: Each patch has four corner vertices (in 2D). The algorithm computes spatial distances between all vertex pairs across patches. Vertices within a tolerance $\epsilon$ are identified as shared:
+\begin{equation}
+\text{vertex}_i \equiv \text{vertex}_j \iff \|\mathbf{x}_i - \mathbf{x}_j\| < \epsilon.
+\end{equation}
+
+\textbf{Stage 2 - Edge detection}: For each pair of patches sharing two vertices, the algorithm identifies the corresponding edges. Edge orientation is normalized to ensure consistent parameterization across interfaces.
+
+\textbf{Stage 3 - DOF coupling}: Basis functions along shared edges are identified based on their support. Control points coinciding spatially are assigned the same global DOF index, enforcing $C^0$ continuity:
+\begin{equation}
+u_{\alpha}(\mathbf{x}) = u_{\beta}(\mathbf{x}) \quad \forall \mathbf{x} \in \Gamma_{\alpha\beta}.
+\end{equation}
+
+This process is transparent to users, who simply provide a list of patches. The resulting global system incorporates interface coupling automatically.
+
+\subsubsection{Example: Plate with Circular Hole}
+
+A common benchmark in structural mechanics is a plate with a circular hole under tension. This geometry requires multiple patches:
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single, caption={Multipatch geometry for plate with hole}]
+# Define 4-patch decomposition around hole
+patch1 = QuarterAnnulus(r_inner=0.2, r_outer=1.0)
+patch2 = QuarterAnnulus(r_inner=0.2, r_outer=1.0)
+# ... (rotate for other quadrants)
+
+meshes = [IGAMesh2D(p) for p in [patch1, patch2, ...]]
+
+# Automatic coupling (no manual interface specification!)
+vertices, vertex2patch, patch2vertex = \
+    gen_vertex2patch2D(meshes)
+edge_list = gen_edge_list(patch2vertex)
+total_dofs = zip_conforming(meshes, vertex2patch, edge_list)
+\end{lstlisting}
+
+The algorithm automatically detects the four internal interfaces (between adjacent quarter-annuli) and the external boundary, eliminating error-prone manual coupling.
+
+\subsection{Energy Functional Definition and Assembly}
+\label{subsec:energy_assembly}
+
+\subsubsection{Energy Functional Specification}
+
+Users define energy functionals as Python functions that compute energy density at quadrature points:
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single, caption={Poisson energy density function}]
+def pde_form_poisson_2d(R, dR, phys_pt, local_area,
+                        param_funs, aux_fields):
+    """
+    Energy density for Poisson equation.
+
+    Args:
+        R: basis function values (shape: num_basis)
+        dR: basis function gradients (shape: dim x num_basis)
+        phys_pt: physical coordinates [x, y]
+        local_area: quadrature weight * Jacobian
+        param_funs: (diffusion_coeff, source_term)
+        aux_fields: auxiliary fields (unused here)
+
+    Returns:
+        local_stiff: element stiffness contribution
+        local_rhs: element force contribution
+    """
+    a0, f = param_funs
+
+    # Energy density: 0.5 * a * |grad(u)|^2 - f * u
+    local_stiff = local_area * a0(phys_pt[0], phys_pt[1]) * \
+                  (dR.T @ dR)
+    local_rhs = local_area * f(phys_pt[0], phys_pt[1]) * R
+
+    return local_stiff, jnp.squeeze(local_rhs)
+\end{lstlisting}
+
+This function signature is standardized across all PDEs. For linear problems, it returns local stiffness and RHS contributions. For nonlinear problems, it returns the energy density directly.
+
+\subsubsection{Assembly Process}
+
+JAXIGA provides high-level assembly functions that handle quadrature loops, element iterations, and global system construction:
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single, caption={Assembly workflow}]
+from jaxiga.utils.processing_splines_2d import (
+    evaluate_spline_basis_fem_2d,
+    evaluate_stiff_rhs_fem_2d
+)
+
+# Define problem parameters
+a0 = lambda x, y: 1.0  # Diffusion coefficient
+f = lambda x, y: 8*jnp.pi**2 * jnp.sin(2*jnp.pi*x) * \
+                                jnp.sin(2*jnp.pi*y)
+param_funs = (a0, f)
+
+# Quadrature rule (degree + 1 Gauss points)
+gauss_rule = [gen_gauss_pts(degree + 1),
+              gen_gauss_pts(degree + 1)]
+
+# Evaluate basis functions at quadrature points
+R, dR, local_areas, phys_pts, global_nodes = \
+    evaluate_spline_basis_fem_2d(meshes, gauss_rule,
+                                 num_fields=1)
+
+# Assemble global system
+II, JJ, S, local_rhss = evaluate_stiff_rhs_fem_2d(
+    R, dR, local_areas, phys_pts, gauss_rule,
+    num_fields=1, global_nodes,
+    pde_form_poisson_2d, param_funs, aux_fields=()
+)
+
+# Construct sparse matrices
+stiff_mat = sparse.coo_matrix((S, (II, JJ))).tocsr()
+rhs = make_rhs(global_nodes, local_rhss, num_fields,
+               total_dofs)
+\end{lstlisting}
+
+The assembly functions are JIT-compiled by JAX, achieving performance comparable to compiled languages while maintaining Python's flexibility.
+
+\subsection{Boundary Conditions}
+\label{subsec:boundary_conditions}
+
+JAXIGA supports Dirichlet, Neumann, and Robin boundary conditions through a simple API:
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single]
+from jaxiga.utils.boundary import boundary2D, applyBC2D
+
+# Define boundary condition functions
+u_dirichlet = lambda x, y: 0.0
+u_neumann = lambda x, y: 1.0
+
+# Create BC objects (patch_id, side_name, function)
+bc_left = boundary2D("Dirichlet", 0, "left", u_dirichlet)
+bc_right = boundary2D("Dirichlet", 0, "right", u_dirichlet)
+bc_top = boundary2D("Neumann", 0, "up", u_neumann)
+
+bound_cond = [bc_left, bc_right, bc_top]
+
+# Apply to global system
+stiff_bc, rhs_bc = applyBC2D(meshes, bound_cond,
+                             stiff_mat, rhs)
+\end{lstlisting}
+
+For vector-valued problems (e.g., elasticity), boundary conditions can specify constraints per component:
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single]
+# Fixed support (both components zero)
+bc_fixed = boundary2D("Dirichlet", 0, "down",
+                      lambda x, y: [0.0, 0.0])
+
+# Roller support (u_x free, u_y = 0)
+bc_roller = boundary2D("Dirichlet", 0, "left",
+                       lambda x, y: [None, 0.0])
+\end{lstlisting}
+
+\subsection{Solution Methods and Solvers}
+\label{subsec:solvers}
+
+JAXIGA supports multiple solution strategies, all leveraging JAX's autodiff capabilities:
+
+\subsubsection{Direct Solution (Linear Problems)}
+
+For linear PDEs, the energy minimization stationarity condition yields a linear system:
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single]
+from scipy.sparse.linalg import spsolve
+
+# Solve K * c = f
+solution = spsolve(stiff_bc, rhs_bc)
+\end{lstlisting}
+
+\subsubsection{Gradient-Based Optimization (Nonlinear Problems)}
+
+For nonlinear problems, users define the total energy as a function of coefficients:
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single]
+def total_energy(coeffs):
+    """Total energy as function of NURBS coefficients."""
+    # Evaluate energy at all quadrature points
+    energy_val = 0.0
+    for elem in elements:
+        for qp in quadrature_points:
+            u_qp = evaluate_solution(coeffs, R, elem, qp)
+            energy_val += energy_density(u_qp) * weight * jac
+    return energy_val
+
+# Automatic gradient computation
+grad_energy = jax.grad(total_energy)
+
+# BFGS optimization
+from jaxiga.utils.bfgs import minimize
+coeffs_opt = minimize(total_energy, c_initial,
+                      gradient=grad_energy)
+\end{lstlisting}
+
+JAXIGA includes custom JAX-compatible implementations of BFGS and L-BFGS~\cite{liu1989} that operate entirely on JAX arrays, enabling GPU execution and seamless integration with the rest of the framework.
+
+\subsubsection{Inverse Problems via Bilevel Optimization}
+
+A key advantage of the energy framework is natural formulation of inverse problems:
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single, caption={Inverse problem: parameter identification}]
+def forward_solve(theta):
+    """Solve forward problem with parameter theta."""
+    # Update energy functional with parameter theta
+    def energy(c):
+        return total_energy(c, diffusion=theta)
+
+    # Minimize to find c*(theta)
+    c_star = minimize(energy, c_init)
+    return c_star
+
+def data_misfit(theta, observations):
+    """Objective: fit observations at measurement points."""
+    c_star = forward_solve(theta)
+    predictions = evaluate_at_points(c_star, meas_points)
+    return jnp.sum((predictions - observations)**2)
+
+# Gradient of misfit w.r.t. parameter theta
+# (automatic differentiation through the solver!)
+grad_misfit = jax.grad(data_misfit)
+
+# Optimize to identify theta
+theta_opt = minimize(lambda t: data_misfit(t, data_obs),
+                     theta_init, gradient=grad_misfit)
+\end{lstlisting}
+
+JAX's reverse-mode autodiff automatically differentiates through the forward solver, computing $\nabla_\theta \mathcal{J}$ efficiently---enabling the bilevel optimization structure described in Section~\ref{subsec:galerkin_comparison}.
+
+\subsection{Materials and Constitutive Models}
+\label{subsec:materials}
+
+JAXIGA provides a materials library for common constitutive relations:
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single]
+from jaxiga.utils_iga.materials import (
+    MaterialElast2D, MaterialElast3D
+)
+
+# 2D plane stress
+mat_2d = MaterialElast2D(Emod=200e9, nu=0.3,
+                         plane_type="stress")
+
+# Access constitutive matrix
+C_mat = mat_2d.Cmat  # 3x3 matrix for plane stress
+
+# 3D linear elasticity
+mat_3d = MaterialElast3D(Emod=200e9, nu=0.3)
+C_mat_3d = mat_3d.Cmat  # 6x6 matrix
+\end{lstlisting}
+
+Material objects encapsulate constitutive relations and can be extended for nonlinear models (hyperelasticity, plasticity, etc.) by defining stress and tangent stiffness methods compatible with JAX's autodiff.
+
+\subsection{Integration with JAX Ecosystem}
+\label{subsec:jax_integration}
+
+JAXIGA's tight integration with JAX provides several powerful capabilities beyond standard IGA implementations:
+
+\subsubsection{Just-In-Time Compilation}
+
+Performance-critical functions are decorated with \texttt{@jax.jit} for automatic compilation to optimized XLA code:
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single]
+import jax
+
+@jax.jit
+def compute_element_energy(coeffs, R, dR, jacobian):
+    """Compiled element energy computation."""
+    u_local = R @ coeffs
+    grad_u = dR @ coeffs
+    return 0.5 * jnp.sum(grad_u**2) * jacobian
+\end{lstlisting}
+
+JIT compilation occurs on first invocation; subsequent calls execute compiled code at near-C speeds. This provides the performance of compiled languages while maintaining Python's interactivity.
+
+\subsubsection{Automatic Vectorization}
+
+JAX's \texttt{vmap} transformation automatically vectorizes operations:
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single]
+# Compute energy for all elements simultaneously
+energies = jax.vmap(compute_element_energy,
+                    in_axes=(None, 0, 0, 0))(
+    coeffs, R_all_elems, dR_all_elems, jacs
+)
+total_energy = jnp.sum(energies)
+\end{lstlisting}
+
+This eliminates explicit loops, improving both readability and performance through SIMD operations and parallelization.
+
+\subsubsection{Transparent GPU Execution}
+
+JAXIGA code runs on GPU without modification when JAX is configured with GPU support:
+
+\begin{lstlisting}[language=bash, basicstyle=\small\ttfamily, frame=single]
+# CPU execution (default)
+python poisson_2d.py
+
+# GPU execution (automatic if available)
+JAX_PLATFORM_NAME=gpu python poisson_2d.py
+\end{lstlisting}
+
+Arrays are automatically transferred to GPU memory, and all operations execute on the accelerator. For sufficiently large problems, this provides substantial speedups (demonstrated in Section~\ref{sec:examples}).
+
+\subsubsection{Gradient Transformations}
+
+JAX provides multiple autodiff transformations:
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single]
+# Gradient (reverse-mode)
+grad_f = jax.grad(energy_functional)
+
+# Jacobian (forward-mode, efficient for few inputs)
+jac_f = jax.jacobian(residual_function)
+
+# Hessian (compose grad twice)
+hess_f = jax.hessian(energy_functional)
+
+# Jacobian-vector product (memory-efficient)
+jvp_f = lambda v: jax.jvp(residual_function, (x,), (v,))[1]
+\end{lstlisting}
+
+These transformations compose with \texttt{jit} and \texttt{vmap}, enabling sophisticated differentiation strategies tailored to specific problem structures.
+
+\subsection{Extensibility: Adding New PDEs}
+\label{subsec:extensibility}
+
+JAXIGA's modular design facilitates addition of new physics. The minimal steps are:
+
+\begin{enumerate}
+\item \textbf{Define energy density function} following the standard signature:
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single]
+def my_pde_energy(R, dR, phys_pt, local_area,
+                  params, aux_fields):
+    # Compute energy density at quadrature point
+    # ...
+    return local_stiff, local_rhs
+\end{lstlisting}
+
+\item \textbf{Set up geometry and mesh} (standard workflow).
+
+\item \textbf{Assemble and solve} using existing assembly functions.
+
+\item \textbf{Postprocess} using standard evaluation tools.
+\end{enumerate}
+
+No modifications to core library code are required. Examples in the repository demonstrate this workflow for Poisson, elasticity, Darcy flow, and phase-field problems.
+
+\subsection{Postprocessing and Visualization}
+\label{subsec:postprocessing}
+
+JAXIGA provides utilities for solution evaluation, error computation, and visualization:
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily, frame=single]
+from jaxiga.utils.postprocessing import (
+    evaluate_solution_at_points,
+    compute_L2_error
+)
+
+# Evaluate solution at arbitrary points
+eval_points = jnp.array([[0.5, 0.5], [0.75, 0.25]])
+u_vals = evaluate_solution_at_points(solution, meshes,
+                                     eval_points)
+
+# Compute L2 error against exact solution
+def exact_sol(x, y):
+    return jnp.sin(jnp.pi*x) * jnp.sin(jnp.pi*y)
+
+L2_error = compute_L2_error(solution, meshes, exact_sol,
+                            quad_order=degree+2)
+\end{lstlisting}
+
+Solutions can be exported to VTK format for visualization in ParaView or similar tools (implementation in progress).
+
+\subsection{Summary: Design Principles Realized}
+\label{subsec:design_summary}
+
+JAXIGA's architecture realizes several key objectives:
+
+\begin{itemize}
+\item \textbf{Differentiability}: All operations are compatible with JAX's autodiff, enabling inverse problems and sensitivity analysis without manual derivative coding.
+
+\item \textbf{Performance}: JIT compilation and GPU support provide competitive performance while maintaining a high-level Python interface.
+
+\item \textbf{Automation}: Multipatch coupling, basis function evaluation, and assembly are automated, reducing user burden and error potential.
+
+\item \textbf{Flexibility}: Modular design and standard interfaces enable easy extension to new PDEs, materials, and solution methods.
+
+\item \textbf{Accessibility}: High-level Python API lowers the barrier to entry for IGA compared to C/C++/Fortran frameworks, facilitating education and rapid prototyping.
+\end{itemize}
+
+The next section presents numerical examples demonstrating these capabilities in practice.
+
+\section{Numerical Examples}
+\label{sec:examples}
+
+\subsection{Verification: 1D Poisson Equation}
+% - Problem setup
+% - Convergence study (h-refinement, p-refinement)
+% - Comparison: Galerkin vs Collocation vs DEM
+
+\subsection{2D Poisson on Complex Geometries}
+% - Plate with circular hole
+% - Multipatch demonstration
+% - Accuracy assessment
+
+\subsection{Linear Elasticity}
+% - 2D: plate with holes under tension/shear
+% - 3D: hollow sphere, cube
+% - Stress concentration verification
+% - Comparison with analytical solutions
+
+\subsection{Darcy Flow Inverse Problem}
+% - Forward problem: flow through porous media
+% - Inverse problem: permeability identification
+% - Demonstrating autodiff capabilities
+
+\subsection{Phase-Field Fracture}
+% - 1D benchmark
+% - 2D tension test, shear test
+% - Crack propagation
+% - Coupled formulation (displacement + phase-field)
+
+\subsection{3D Examples}
+% - Hollow sphere (Poisson, elasticity)
+% - Cube geometry
+% - Computational cost analysis
+
+\subsection{Performance Benchmarks}
+% - CPU vs GPU speedup
+% - Scalability with problem size
+% - Compilation overhead analysis
+% - Comparison with other IGA codes (if available)
+
+\section{Applications and Use Cases}
+\label{sec:applications}
+
+\subsection{Design Optimization}
+% - Shape optimization using autodiff
+% - Topology optimization potential
+% - Sensitivity-based methods
+
+\subsection{Uncertainty Quantification}
+% - Parametric uncertainty propagation
+% - Stochastic Galerkin potential
+% - Monte Carlo with efficient sampling
+
+\subsection{Data-Driven Modeling}
+% - Physics-informed neural networks (PINNs)
+% - Hybrid physics-ML approaches
+% - Parameter learning from experimental data
+
+\subsection{Multiscale and Multiphysics}
+% - Coupling with other solvers
+% - Heterogeneous materials (future work)
+% - Fluid-structure interaction potential
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Advantages of JAX-Based Implementation}
+% - Automatic differentiation capabilities
+% - GPU acceleration without code changes
+% - Integration with ML ecosystem
+% - Composability and functional programming
+
+\subsection{Limitations and Challenges}
+% - Memory consumption for large problems
+% - Compilation time overhead
+% - 3D multipatch coupling (manual in current version)
+% - Sparse matrix operations on GPU
+
+\subsection{Comparison with Existing Software}
+% Feature comparison table:
+% - JAXIGA vs PetIGA vs GeoPDEs vs G+Smo
+% - Autodiff, GPU, Language, Multipatch, License, etc.
+
+\subsection{Future Developments}
+% Planned enhancements:
+% - Automatic 3D multipatch coupling
+% - T-splines and hierarchical B-splines
+% - Adaptive refinement
+% - Parallel distributed computing
+% - Higher-level declarative API (Section from recommendations)
+% - Integration with symbolic form languages
+
+\section{Conclusions}
+\label{sec:conclusions}
+
+% Summary of contributions
+% - First JAX-based IGA framework
+% - Automatic 2D multipatch coupling
+% - Differentiable simulations
+% - Extensive validation
+
+% Impact
+% - Enables new research directions (optimization, UQ, ML)
+% - Democratizes IGA through Python/open-source
+% - GPU acceleration for large-scale problems
+
+% Outlook
+% - Community contributions
+% - Integration with broader scientific Python ecosystem
+% - Potential for production applications
+
+\section*{Acknowledgments}
+% Funding sources
+% Computational resources
+% Contributors
+
+\section*{Data Availability}
+% Code repository: https://github.com/... (or wherever hosted)
+% Example data and scripts
+% Documentation
+
+\appendix
+
+\section{Installation and Usage}
+\label{app:installation}
+% - System requirements
+% - Installation via pip
+% - Basic usage example
+% - Code snippet
+
+\section{Code Structure}
+\label{app:code_structure}
+% Directory tree
+% Module dependencies
+% Design patterns used
+
+\section{Benchmark Details}
+\label{app:benchmarks}
+% - Hardware specifications
+% - Timing methodology
+% - Full performance data tables
+
+
+
+\begin{thebibliography}{00}
+
+%% IGA Foundations
+\bibitem{hughes2005}
+  T.J.R. Hughes, J.A. Cottrell, Y. Bazilevs,
+  \textit{Isogeometric analysis: CAD, finite elements, NURBS, exact geometry and mesh refinement},
+  Computer Methods in Applied Mechanics and Engineering,
+  194(39-41):4135-4195,
+  2005.
+
+\bibitem{cottrell2009}
+  J.A. Cottrell, T.J.R. Hughes, Y. Bazilevs,
+  \textit{Isogeometric Analysis: Toward Integration of CAD and FEA},
+  John Wiley \& Sons,
+  2009.
+
+%% NURBS and Geometric Modeling
+\bibitem{piegl1997}
+  L. Piegl, W. Tiller,
+  \textit{The NURBS Book},
+  Springer-Verlag,
+  2nd edition,
+  1997.
+
+%% Existing IGA Software
+\bibitem{petiga}
+  L. Dalcin, N. Collier, P. Vignal, A.M.A. Côrtes, V.M. Calo,
+  \textit{PetIGA: A framework for high-performance isogeometric analysis},
+  Computer Methods in Applied Mechanics and Engineering,
+  308:151-181,
+  2016.
+
+\bibitem{geopdes}
+  C. de Falco, A. Reali, R. Vázquez,
+  \textit{GeoPDEs: A research tool for Isogeometric Analysis of PDEs},
+  Advances in Engineering Software,
+  42(12):1020-1034,
+  2011.
+
+\bibitem{gismo}
+  A. Mantzaflaris, B. Jüttler, B.N. Khoromskij, U. Langer,
+  \textit{Matrix generation in isogeometric analysis by low rank tensor approximation},
+  In: Curves and Surfaces,
+  Lecture Notes in Computer Science, vol 9213,
+  Springer,
+  2015.
+
+%% JAX and Automatic Differentiation
+\bibitem{jax2018}
+  J. Bradbury, R. Frostig, P. Hawkins, M.J. Johnson, C. Leary, D. Maclaurin, G. Necula, A. Paszke, J. VanderPlas, S. Wanderman-Milne, Q. Zhang,
+  \textit{JAX: composable transformations of Python+NumPy programs},
+  Available at: http://github.com/google/jax,
+  2018.
+
+\bibitem{baydin2018}
+  A.G. Baydin, B.A. Pearlmutter, A.A. Radul, J.M. Siskind,
+  \textit{Automatic differentiation in machine learning: a survey},
+  Journal of Machine Learning Research,
+  18(153):1-43,
+  2018.
+
+%% Deep Energy Method and PINNs
+\bibitem{nguyen2020}
+  V.P. Nguyen, C. Anitescu, S.P.A. Bordas, T. Rabczuk,
+  \textit{Isogeometric analysis: An overview and computer implementation aspects},
+  Mathematics and Computers in Simulation,
+  117:89-116,
+  2015.
+
+\bibitem{samaniego2020}
+  E. Samaniego, C. Anitescu, S. Goswami, V.M. Nguyen-Thanh, H. Guo, K. Hamdia, X. Zhuang, T. Rabczuk,
+  \textit{An energy approach to the solution of partial differential equations in computational mechanics via machine learning: Concepts, implementation and applications},
+  Computer Methods in Applied Mechanics and Engineering,
+  362:112790,
+  2020.
+
+\bibitem{raissi2019}
+  M. Raissi, P. Perdikaris, G.E. Karniadakis,
+  \textit{Physics-informed neural networks: A deep learning framework for solving forward and inverse problems involving nonlinear partial differential equations},
+  Journal of Computational Physics,
+  378:686-707,
+  2019.
+
+%% Multipatch IGA
+\bibitem{nguyen2014}
+  T. Nguyen, K. Karčiauskas, J. Peters,
+  \textit{$C^1$ finite elements on non-tensor-product 2d and 3d manifolds},
+  Applied Mathematics and Computation,
+  272:148-158,
+  2016.
+
+\bibitem{buchegger2016}
+  F. Buchegger, B. Jüttler, A. Mantzaflaris,
+  \textit{Adaptively refined multi-patch B-splines with enhanced smoothness},
+  Applied Mathematics and Computation,
+  272:159-172,
+  2016.
+
+%% Phase-Field Methods
+\bibitem{miehe2010}
+  C. Miehe, F. Welschinger, M. Hofacker,
+  \textit{Thermodynamically consistent phase-field models of fracture: Variational principles and multi-field FE implementations},
+  International Journal for Numerical Methods in Engineering,
+  83(10):1273-1311,
+  2010.
+
+\bibitem{borden2012}
+  M.J. Borden, C.V. Verhoosel, M.A. Scott, T.J.R. Hughes, C.M. Landis,
+  \textit{A phase-field description of dynamic brittle fracture},
+  Computer Methods in Applied Mechanics and Engineering,
+  217-220:77-95,
+  2012.
+
+%% Bezier Extraction
+\bibitem{borden2011}
+  M.J. Borden, M.A. Scott, J.A. Evans, T.J.R. Hughes,
+  \textit{Isogeometric finite element data structures based on Bézier extraction of NURBS},
+  International Journal for Numerical Methods in Engineering,
+  87(1-5):15-47,
+  2011.
+
+%% Collocation Methods
+\bibitem{auricchio2010}
+  F. Auricchio, L. Beirão da Veiga, T.J.R. Hughes, A. Reali, G. Sangalli,
+  \textit{Isogeometric collocation methods},
+  Mathematical Models and Methods in Applied Sciences,
+  20(11):2075-2107,
+  2010.
+
+\bibitem{schillinger2013}
+  D. Schillinger, J.A. Evans, A. Reali, M.A. Scott, T.J.R. Hughes,
+  \textit{Isogeometric collocation: Cost comparison with Galerkin methods and extension to adaptive hierarchical NURBS discretizations},
+  Computer Methods in Applied Mechanics and Engineering,
+  267:170-232,
+  2013.
+
+%% GPU Computing for FEM/IGA
+\bibitem{cecka2011}
+  C. Cecka, A.J. Lew, E. Darve,
+  \textit{Assembly of finite element methods on graphics processors},
+  International Journal for Numerical Methods in Engineering,
+  85(5):640-669,
+  2011.
+
+\bibitem{komatitsch2010}
+  D. Komatitsch, G. Erlebacher, D. Göddeke, D. Michéa,
+  \textit{High-order finite-element seismic wave propagation modeling with MPI on a large GPU cluster},
+  Journal of Computational Physics,
+  229(20):7692-7714,
+  2010.
+
+%% Optimization and Inverse Problems
+\bibitem{liu1989}
+  D.C. Liu, J. Nocedal,
+  \textit{On the limited memory BFGS method for large scale optimization},
+  Mathematical Programming,
+  45(1-3):503-528,
+  1989.
+
+\bibitem{wall2008}
+  W.A. Wall, M.W. Gee, E. Ramm,
+  \textit{The challenge of a three-dimensional shell formulation: The conditioning problem},
+  In: IUTAM Symposium on Computational Methods in Contact Mechanics,
+  Springer,
+  2007.
+
+%% Related Differentiable Physics Frameworks
+\bibitem{hu2019}
+  Y. Hu, L. Anderson, T.-M. Li, Q. Sun, N. Carr, J. Ragan-Kelley, F. Durand,
+  \textit{DiffTaichi: Differentiable programming for physical simulation},
+  ICLR,
+  2020.
+
+\bibitem{hennigh2021}
+  O. Hennigh, S. Narasimhan, M.A. Nabian, A. Subramaniam, K. Tangsali, Z. Fang, M. Rietmann, W. Byeon, S. Choudhry,
+  \textit{NVIDIA SimNet: An AI-accelerated multi-physics simulation framework},
+  In: International Conference on Computational Science,
+  Springer,
+  2021.
+
+%% Other Relevant FEM Software
+\bibitem{fenics}
+  M.S. Alnæs, J. Blechta, J. Hake, A. Johansson, B. Kehlet, A. Logg, C. Richardson, J. Ring, M.E. Rognes, G.N. Wells,
+  \textit{The FEniCS Project Version 1.5},
+  Archive of Numerical Software,
+  3(100),
+  2015.
+
+\bibitem{dealii}
+  D. Arndt, W. Bangerth, T.C. Clevenger, D. Davydov, M. Kronbichler, T. Heister, L. Heltai, M. Kronbichler, M. Maier, P. Munch, J.-P. Pelteret, S. Sticko, B. Turcksin, D. Wells,
+  \textit{The deal.II library, Version 9.3},
+  Journal of Numerical Mathematics,
+  29(3):171-186,
+  2021.
+
+\end{thebibliography}
+\end{document}
+
+\endinput
+%%
+%% End of file `elsarticle-template-num.tex'.
